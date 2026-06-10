@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cyphrix Bill Generator</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="panel form-panel" aria-label="Bill details form">
+        <div class="brand-strip">
+          <div class="brand-mark" aria-hidden="true">C</div>
+          <div>
+            <p class="eyebrow">Cyphrix Technologies</p>
+            <h1>Bill Generator</h1>
+          </div>
+        </div>
+
+        <div class="draft-bar" aria-label="Saved draft controls">
+          <button class="primary-button" id="saveDraft" type="button">Save Draft</button>
+          <select id="draftSelect" aria-label="Saved drafts">
+            <option value="">No saved drafts</option>
+          </select>
+          <button class="secondary-button" id="loadDraft" type="button">Load</button>
+          <p class="save-status" id="saveStatus" role="status" aria-live="polite"></p>
+        </div>
+
+        <form id="billForm">
+          <div class="section-heading">
+            <h2>Document</h2>
+            <button class="icon-button" id="resetButton" type="button" title="Reset form" aria-label="Reset form">
+              <span aria-hidden="true">↺</span>
+            </button>
+          </div>
+          <div class="field-grid two">
+            <label>
+              Document Type
+              <select id="documentType" name="documentType">
+                <option>Invoice</option>
+                <option>Quotation</option>
+                <option>Proposal</option>
+              </select>
+            </label>
+            <label>
+              Bill Number
+              <input id="billNumber" name="billNumber" type="text" value="CYX-2026-001" />
+            </label>
+            <label>
+              Issue Date
+              <input id="issueDate" name="issueDate" type="date" />
+            </label>
+            <label>
+              Due Date
+              <input id="dueDate" name="dueDate" type="date" />
+            </label>
+          </div>
+
+          <h2>Client Details</h2>
+          <div class="field-grid two">
+            <label>
+              Client Name
+              <input id="clientName" name="clientName" type="text" placeholder="Client or business name" />
+            </label>
+            <label>
+              Contact Person
+              <input id="clientContact" name="clientContact" type="text" placeholder="Full name" />
+            </label>
+            <label>
+              Email
+              <input id="clientEmail" name="clientEmail" type="email" placeholder="client@example.com" />
+            </label>
+            <label>
+              Phone
+              <input id="clientPhone" name="clientPhone" type="tel" placeholder="+91 ..." />
+            </label>
+            <label class="wide">
+              Billing Address
+              <textarea id="clientAddress" name="clientAddress" rows="3" placeholder="Street, city, state, country"></textarea>
+            </label>
+          </div>
+
+          <h2>Scope</h2>
+          <label>
+            Project Title
+            <input id="projectTitle" name="projectTitle" type="text" placeholder="Website development, app, branding..." />
+          </label>
+          <label>
+            Scope of Work
+            <textarea id="scope" name="scope" rows="5" placeholder="Write one scope item per line"></textarea>
+          </label>
+
+          <div class="section-heading">
+            <h2>Budget</h2>
+            <button class="secondary-button" id="addItem" type="button">Add Item</button>
+          </div>
+          <div class="items-table" id="itemsTable" aria-label="Budget items"></div>
+          <div class="field-grid two">
+            <label>
+              Tax %
+              <input id="taxRate" name="taxRate" type="number" min="0" step="0.01" value="18" />
+            </label>
+            <label>
+              Advance Paid
+              <input id="advance" name="advance" type="number" min="0" step="0.01" value="0" />
+            </label>
+          </div>
+
+          <h2>Company & Bank</h2>
+          <div class="field-grid two">
+            <label>
+              Company Name
+              <input id="companyName" name="companyName" type="text" value="Cyphrix Technologies" />
+            </label>
+            <label>
+              Website
+              <input id="companyWebsite" name="companyWebsite" type="url" value="https://cyphrixtech.com/" />
+            </label>
+            <label>
+              Email
+              <input id="companyEmail" name="companyEmail" type="email" value="support@cyphrixtech.com" />
+            </label>
+            <label>
+              Phone
+              <input id="companyPhone" name="companyPhone" type="tel" value="+91 6351163830" />
+            </label>
+            <label class="wide">
+              Company Address
+              <textarea id="companyAddress" name="companyAddress" rows="3">74/75/76B, Sukhsagar Society, Chitra, Bhavnagar, 364004 India</textarea>
+            </label>
+          </div>
+          <div class="section-heading compact-heading">
+            <h2>Bank Details</h2>
+            <button class="secondary-button" id="addBankDetail" type="button">Add Detail</button>
+          </div>
+          <div class="bank-table" id="bankDetailsTable" aria-label="Bank detail rows"></div>
+
+          <h2>Disclosure Party</h2>
+          <div class="field-grid two">
+            <label>
+              Authorized Person
+              <input id="authorizedPerson" name="authorizedPerson" type="text" placeholder="Name" />
+            </label>
+            <label>
+              Designation
+              <input id="designation" name="designation" type="text" placeholder="Founder, Manager..." />
+            </label>
+            <label class="wide">
+              Notes / Terms
+              <textarea id="terms" name="terms" rows="4">Payment is requested as per the due date. Work begins after confirmation and advance payment. Any additional scope will be billed separately.</textarea>
+            </label>
+            <label class="wide">
+              Typed Signature
+              <input id="typedSignature" name="typedSignature" type="text" placeholder="Type signature text or draw below" />
+            </label>
+            <div class="signature-pad wide">
+              <div class="section-heading compact-heading">
+                <h2>Draw Signature</h2>
+                <button class="secondary-button" id="clearSignature" type="button">Clear</button>
+              </div>
+              <canvas id="signatureCanvas" width="640" height="180" aria-label="Signature drawing area"></canvas>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <section class="preview-panel" aria-label="Bill preview">
+        <div class="preview-toolbar">
+          <div>
+            <p class="eyebrow">Live Preview</p>
+            <h2 id="previewTitle">Invoice Preview</h2>
+          </div>
+          <div class="preview-actions">
+            <div class="page-controls" aria-label="Preview page controls">
+              <button class="icon-button" id="prevPage" type="button" title="Previous page" aria-label="Previous page">‹</button>
+              <span id="pageIndicator">Page 1 of 1</span>
+              <button class="icon-button" id="nextPage" type="button" title="Next page" aria-label="Next page">›</button>
+            </div>
+            <button class="primary-button" id="downloadPdf" type="button">Download PDF</button>
+          </div>
+        </div>
+        <article class="document" id="documentPreview"></article>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
