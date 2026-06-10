@@ -13,8 +13,13 @@
           <div class="brand-mark" aria-hidden="true">C</div>
           <div>
             <p class="eyebrow">Cyphrix Technologies</p>
-            <h1>Bill Generator</h1>
+            <h1>Document Generator</h1>
           </div>
+        </div>
+
+        <div class="mode-switch" aria-label="Generator type">
+          <button class="mode-button active" id="billMode" type="button">Bill Generation</button>
+          <button class="mode-button" id="ndaMode" type="button">NDA Generation</button>
         </div>
 
         <div class="draft-bar" aria-label="Saved draft controls">
@@ -26,7 +31,7 @@
           <p class="save-status" id="saveStatus" role="status" aria-live="polite"></p>
         </div>
 
-        <form id="billForm">
+        <form id="billForm" class="generator-form">
           <div class="section-heading">
             <h2>Document</h2>
             <button class="icon-button" id="resetButton" type="button" title="Reset form" aria-label="Reset form">
@@ -160,6 +165,92 @@
               </div>
               <canvas id="signatureCanvas" width="640" height="180" aria-label="Signature drawing area"></canvas>
             </div>
+          </div>
+        </form>
+
+        <form id="ndaForm" class="generator-form" hidden>
+          <div class="section-heading">
+            <h2>NDA Details</h2>
+            <button class="icon-button" id="resetNdaButton" type="button" title="Reset NDA form" aria-label="Reset NDA form">
+              <span aria-hidden="true">↺</span>
+            </button>
+          </div>
+          <div class="field-grid two">
+            <label>
+              Effective Date
+              <input id="ndaEffectiveDate" name="effectiveDate" type="date" />
+            </label>
+            <label>
+              Document Ref
+              <input id="ndaDocRef" name="docRef" type="text" value="CYX-NDA-001" />
+            </label>
+          </div>
+
+          <h2>Client Receiving Party</h2>
+          <div class="field-grid two">
+            <label>
+              Name / Company
+              <input id="ndaClientName" name="clientName" type="text" placeholder="Client or business name" />
+            </label>
+            <label>
+              Email
+              <input id="ndaClientEmail" name="clientEmail" type="email" placeholder="client@example.com" />
+            </label>
+            <label>
+              Website
+              <input id="ndaClientWebsite" name="clientWebsite" type="url" placeholder="https://..." />
+            </label>
+            <label>
+              Contact Person
+              <input id="ndaClientContact" name="clientContact" type="text" placeholder="Full name" />
+            </label>
+          </div>
+
+          <h2>Project & Payment</h2>
+          <label>
+            Project / Service
+            <textarea id="ndaProjectService" name="projectService" rows="3" placeholder="Describe the project or service"></textarea>
+          </label>
+          <div class="field-grid three">
+            <label>
+              Fixed Project Fee
+              <input id="ndaFixedFee" name="fixedFee" type="text" placeholder="$ 5,000" />
+            </label>
+            <label>
+              Hourly Rate
+              <input id="ndaHourlyRate" name="hourlyRate" type="text" placeholder="$ 50 / hr" />
+            </label>
+            <label>
+              Retainer
+              <input id="ndaRetainer" name="retainer" type="text" placeholder="$ 1,000 / mo" />
+            </label>
+          </div>
+          <label>
+            Payment Schedule / Notes
+            <textarea id="ndaPaymentNotes" name="paymentNotes" rows="4">50% deposit due on signing, 25% milestone payment, and 25% final payment due on delivery unless otherwise stated in the SOW.</textarea>
+          </label>
+
+          <h2>Editable Clauses</h2>
+          <div class="nda-sections-editor" id="ndaSectionsEditor" aria-label="Editable NDA sections"></div>
+
+          <h2>Signature</h2>
+          <div class="field-grid two">
+            <label>
+              Provider Signatory
+              <input id="ndaProviderSignatory" name="providerSignatory" type="text" value="Cyphrix Technologies" />
+            </label>
+            <label>
+              Client Signatory
+              <input id="ndaClientSignatory" name="clientSignatory" type="text" placeholder="Client signer name" />
+            </label>
+            <label>
+              Provider Signature Text
+              <input id="ndaProviderSignature" name="providerSignature" type="text" placeholder="Typed provider signature" />
+            </label>
+            <label>
+              Client Signature Text
+              <input id="ndaClientSignature" name="clientSignature" type="text" placeholder="Typed client signature" />
+            </label>
           </div>
         </form>
       </section>

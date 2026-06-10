@@ -1,4 +1,5 @@
 const form = document.getElementById("billForm");
+const ndaForm = document.getElementById("ndaForm");
 const preview = document.getElementById("documentPreview");
 const previewTitle = document.getElementById("previewTitle");
 const itemsTable = document.getElementById("itemsTable");
@@ -16,10 +17,17 @@ const nextPageButton = document.getElementById("nextPage");
 const pageIndicator = document.getElementById("pageIndicator");
 const signatureCanvas = document.getElementById("signatureCanvas");
 const clearSignatureButton = document.getElementById("clearSignature");
+const billModeButton = document.getElementById("billMode");
+const ndaModeButton = document.getElementById("ndaMode");
+const resetNdaButton = document.getElementById("resetNdaButton");
+const ndaSectionsEditor = document.getElementById("ndaSectionsEditor");
 
 const STORAGE_KEY = "cyphrix.bill.generator";
 const DRAFTS_KEY = "cyphrix.bill.generator.drafts";
+const NDA_STORAGE_KEY = "cyphrix.nda.generator";
+const NDA_DRAFTS_KEY = "cyphrix.nda.generator.drafts";
 
+let activeMode = "bill";
 let items = [
   { description: "Website design and development", amount: 25000 },
   { description: "Domain, hosting, and deployment support", amount: 5000 },
@@ -32,6 +40,8 @@ let bankDetails = [
 ];
 let signatureStrokes = [];
 let activeSignatureStroke = null;
+let ndaSections = [];
+let revertedNdaSections = new Set();
 let currentPreviewPage = 0;
 let latestPreviewPages = [];
 
@@ -63,6 +73,126 @@ const defaults = {
   typedSignature: "",
   terms: "Payment is requested as per the due date. Work begins after confirmation and advance payment. Any additional scope will be billed separately.",
 };
+
+const ndaDefaults = {
+  effectiveDate: toInputDate(today),
+  docRef: "CYX-NDA-001",
+  clientName: "",
+  clientEmail: "",
+  clientWebsite: "",
+  clientContact: "",
+  projectService: "",
+  fixedFee: "",
+  hourlyRate: "",
+  retainer: "",
+  paymentNotes: "50% deposit due on signing, 25% milestone payment, and 25% final payment due on delivery unless otherwise stated in the SOW.",
+  providerSignatory: "Cyphrix Technologies",
+  clientSignatory: "",
+  providerSignature: "",
+  clientSignature: "",
+};
+
+const ndaSectionDefaults = [
+  {
+    title: "Purpose",
+    body:
+      "The Parties wish to explore and/or enter into a professional engagement whereby Cyphrix Technologies will provide technology services, including software development, web and mobile application development, blockchain solutions, cybersecurity consulting, and related technical services.",
+  },
+  {
+    title: "Definition of Confidential Information",
+    body:
+      "Confidential Information includes technical plans, source code, designs, business logic, credentials, customer data, pricing, proposals, project requirements, documents, processes, and any information marked confidential or reasonably understood to be confidential.",
+  },
+  {
+    title: "Obligations of the Receiving Party",
+    body:
+      "Each receiving Party shall protect Confidential Information with reasonable care, not disclose it to third parties without written consent, use it only for the Project, restrict access to need-to-know personnel, and promptly report any suspected unauthorized disclosure.",
+  },
+  {
+    title: "Exclusions",
+    body:
+      "Confidential Information does not include information that is publicly available without breach, already known before disclosure, independently developed without use of Confidential Information, or lawfully received from a third party without restriction.",
+  },
+  {
+    title: "Term and Survival",
+    body:
+      "This Agreement begins on the Effective Date and continues through the engagement. Confidentiality obligations survive for three years after termination, or longer where trade secrets or applicable law require continued protection.",
+  },
+  {
+    title: "Return or Destruction of Information",
+    body:
+      "Upon written request or termination, each Party shall return or securely destroy Confidential Information received from the other Party, including copies, notes, and derivatives, and certify such action within five business days.",
+  },
+  {
+    title: "Intellectual Property and Ownership",
+    body:
+      "All intellectual property created by Cyphrix Technologies remains the property of Cyphrix Technologies until full payment is received. Upon full payment, ownership of agreed deliverables transfers to the Client as defined in the Statement of Work.",
+  },
+  {
+    title: "No Warranty or Obligation",
+    body:
+      "Confidential Information is provided as-is for evaluation or project execution. Nothing in this Agreement requires either Party to proceed with a transaction unless a separate written agreement or Statement of Work is signed.",
+  },
+  {
+    title: "Remedies",
+    body:
+      "Unauthorized disclosure may cause irreparable harm. The disclosing Party may seek injunctive relief, damages, and any other remedies available under law or equity.",
+  },
+  {
+    title: "Project Fees",
+    body:
+      "Fees for each engagement shall be agreed in a separate Statement of Work or project proposal issued by Cyphrix Technologies. Unless stated otherwise, fees are exclusive of applicable taxes.",
+  },
+  {
+    title: "Payment Schedule",
+    body:
+      "Unless the applicable Statement of Work specifies otherwise, payment is due according to the agreed milestone schedule. Work may begin only after the required deposit or advance payment is received.",
+  },
+  {
+    title: "Late Payments",
+    body:
+      "If payment is not received by the due date, Cyphrix Technologies may suspend work, access, support, and delivery without liability until the account is settled. Late balances may accrue interest as permitted by law.",
+  },
+  {
+    title: "Taxes and Expenses",
+    body:
+      "The Client is responsible for applicable taxes, third-party service fees, hosting, licenses, subscriptions, and approved out-of-pocket expenses unless explicitly included in the written scope.",
+  },
+  {
+    title: "Change Requests",
+    body:
+      "Any change outside the agreed scope may require a revised timeline and additional fees. Cyphrix Technologies may pause out-of-scope work until the Client approves the change request in writing.",
+  },
+  {
+    title: "Termination",
+    body:
+      "Either Party may terminate the engagement by written notice. The Client remains responsible for fees for work completed, committed resources, approved expenses, and any non-cancellable third-party costs.",
+  },
+  {
+    title: "Governing Law and Dispute Resolution",
+    body:
+      "This Agreement shall be governed by applicable laws of India unless otherwise agreed in writing. The Parties shall first attempt to resolve disputes through good-faith discussion before pursuing formal remedies.",
+  },
+  {
+    title: "Entire Agreement and Signatures",
+    body:
+      "This Agreement, together with any signed Statement of Work, represents the understanding between the Parties regarding confidentiality and payment terms. Electronic signatures are valid and binding.",
+  },
+];
+
+ndaSections = structuredClone(ndaSectionDefaults);
+
+const ndaSectionGroups = [
+  [0, 1],
+  [2, 3],
+  [4, 5],
+  [6, 7],
+  [8],
+  [9, 10],
+  [11, 12],
+  [13, 14],
+  [15, 16],
+];
 
 function toInputDate(date) {
   return date.toISOString().slice(0, 10);
@@ -101,6 +231,21 @@ function getData() {
 function setForm(data) {
   Object.entries({ ...defaults, ...data }).forEach(([key, value]) => {
     const input = form.elements[key];
+    if (input) input.value = value;
+  });
+}
+
+function getNdaData() {
+  const data = { ...ndaDefaults };
+  new FormData(ndaForm).forEach((value, key) => {
+    data[key] = value;
+  });
+  return data;
+}
+
+function setNdaForm(data) {
+  Object.entries({ ...ndaDefaults, ...data }).forEach(([key, value]) => {
+    const input = ndaForm.elements[key];
     if (input) input.value = value;
   });
 }
@@ -151,6 +296,37 @@ function renderBankDetailsEditor() {
       `
     )
     .join("");
+}
+
+function renderNdaSectionsEditor() {
+  ndaSectionsEditor.innerHTML = ndaSections
+    .map(
+      (section, index) => `
+        <section class="nda-section-card ${revertedNdaSections.has(index) ? "reverted" : ""}" data-nda-section-card="${index}">
+          <div class="section-heading compact-heading">
+            <h2>${index + 1}. ${escapeHtml(section.title)}</h2>
+            <button class="secondary-button" type="button" data-revert-nda="${index}">Revert</button>
+          </div>
+          <label>
+            Heading
+            <input data-nda-section="${index}" data-field="title" type="text" value="${escapeHtml(section.title)}" />
+          </label>
+          <label>
+            Section Text
+            <textarea data-nda-section="${index}" data-field="body" rows="5">${escapeHtml(section.body)}</textarea>
+          </label>
+        </section>
+      `
+    )
+    .join("");
+}
+
+function migrateNdaSections(savedSections) {
+  if (!Array.isArray(savedSections) || !savedSections.length) return structuredClone(ndaSectionDefaults);
+  return ndaSectionDefaults.map((section, index) => ({
+    title: savedSections[index]?.title || section.title,
+    body: savedSections[index]?.body || section.body,
+  }));
 }
 
 function calculate(data) {
@@ -284,7 +460,7 @@ function paginateSections(sections) {
   return pages;
 }
 
-function renderPreview() {
+function renderBillPreview() {
   const data = getData();
   const pages = paginateSections(buildSections(data));
   latestPreviewPages = pages;
@@ -308,6 +484,14 @@ function renderPreview() {
 
   updatePreviewPagination();
   saveState();
+}
+
+function renderPreview() {
+  if (activeMode === "nda") {
+    renderNdaPreview();
+    return;
+  }
+  renderBillPreview();
 }
 
 function updatePreviewPagination() {
@@ -427,9 +611,126 @@ function renderSignaturePreview(signature) {
   return `<div class="signature-preview">${svg}</div>`;
 }
 
+function renderNdaPreview() {
+  const data = getNdaData();
+  const pages = buildNdaPages(data);
+
+  latestPreviewPages = pages;
+  currentPreviewPage = Math.min(currentPreviewPage, pages.length - 1);
+  previewTitle.textContent = "NDA Preview";
+  preview.innerHTML = pages
+    .map(
+      (page, index) => `
+        <section class="template-page" ${index === currentPreviewPage ? "" : "hidden"}>
+          <div class="nda-clean-layer">
+            ${page}
+          </div>
+        </section>
+      `
+    )
+    .join("");
+  updatePreviewPagination();
+  saveNdaState();
+}
+
+function buildNdaPages(data) {
+  return ndaSectionGroups.map((sectionIndexes, pageIndex) => {
+    const sectionsHtml = sectionIndexes.map((sectionIndex) => renderNdaSectionForPreview(sectionIndex)).join("");
+    if (pageIndex === 0) {
+      return `
+        <header class="nda-document-head">
+          <h2>NON-DISCLOSURE & PAYMENT TERMS AGREEMENT</h2>
+          <p>Cyphrix Technologies — Trust. Encrypted.</p>
+        </header>
+        <div class="nda-meta-row">
+          <span><strong>Effective Date:</strong> ${escapeHtml(formatDate(data.effectiveDate))}</span>
+          <span><strong>Doc Ref:</strong> ${escapeHtml(data.docRef)}</span>
+        </div>
+        <div class="nda-party-table">
+          <div class="party-heading">Service Provider</div>
+          <div class="party-heading">Client (Receiving Party)</div>
+          <div>
+            <strong>Cyphrix Technologies</strong>
+            <span>Email: cyphrixsupport@cyphrixtech.com</span>
+            <span>Web: https://cyphrixtech.com/</span>
+          </div>
+          <div>
+            <span><strong>Name / Company:</strong> ${escapeHtml(data.clientName || "Client Name")}</span>
+            <span><strong>Email:</strong> ${escapeHtml(data.clientEmail || "-")}</span>
+            <span><strong>Website:</strong> ${escapeHtml(data.clientWebsite || "-")}</span>
+          </div>
+        </div>
+        <p class="nda-intro">Cyphrix Technologies ("Service Provider") and the Client are collectively the <strong>"Parties."</strong> This Agreement formalises Cyphrix Technologies' commitment to <em>Trust. Encrypted.</em></p>
+        <h3 class="nda-part-title">PART A - NON-DISCLOSURE AGREEMENT</h3>
+        ${renderNdaSectionForPreview(0)}
+        <div class="nda-project-line"><strong>Project / Service:</strong> ${escapeHtml(data.projectService || "-")}</div>
+        ${renderNdaSectionForPreview(1)}
+      `;
+    }
+    if (sectionIndexes.includes(9)) {
+      return `
+        <h3 class="nda-part-title">PART B - PAYMENT TERMS AGREEMENT</h3>
+        <table class="nda-fee-table">
+          <tr><th>Fee Type</th><th>Rate / Amount</th><th>Notes</th></tr>
+          <tr><td>Fixed Project Fee</td><td>${escapeHtml(data.fixedFee || "-")}</td><td>Defined scope per SOW</td></tr>
+          <tr><td>Hourly Rate</td><td>${escapeHtml(data.hourlyRate || "-")}</td><td>Billed with time logs</td></tr>
+          <tr><td>Retainer</td><td>${escapeHtml(data.retainer || "-")}</td><td>Reserved capacity</td></tr>
+        </table>
+        <div class="nda-project-line"><strong>Payment Notes:</strong> ${escapeHtml(data.paymentNotes || "-")}</div>
+        ${sectionsHtml}
+      `;
+    }
+    if (pageIndex === ndaSectionGroups.length - 1) {
+      return `
+        ${sectionsHtml}
+        <div class="nda-signature-grid">
+          <div>
+            <p class="signature-text">${escapeHtml(data.providerSignature || data.providerSignatory || "Cyphrix Technologies")}</p>
+            <strong>${escapeHtml(data.providerSignatory || "Cyphrix Technologies")}</strong>
+            <span>Service Provider</span>
+            <span>Date: ${escapeHtml(formatDate(data.effectiveDate))}</span>
+          </div>
+          <div>
+            <p class="signature-text">${escapeHtml(data.clientSignature || data.clientSignatory || "Client Signature")}</p>
+            <strong>${escapeHtml(data.clientSignatory || data.clientName || "Client")}</strong>
+            <span>Receiving Party</span>
+            <span>Date: ${escapeHtml(formatDate(data.effectiveDate))}</span>
+          </div>
+        </div>
+      `;
+    }
+    return sectionsHtml;
+  });
+}
+
+function renderNdaSectionForPreview(index) {
+  const section = ndaSections[index] || ndaSectionDefaults[index];
+  return `
+    <section class="nda-generated-section">
+      <h4><span>${index + 1}</span>${escapeHtml(section.title)}</h4>
+      <p>${escapeHtml(section.body)}</p>
+    </section>
+  `;
+}
+
 function saveState() {
   const data = getData();
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ data, items, bankDetails, signatureStrokes }));
+}
+
+function saveNdaState() {
+  localStorage.setItem(NDA_STORAGE_KEY, JSON.stringify({ data: getNdaData(), sections: ndaSections }));
+}
+
+function loadNdaState() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(NDA_STORAGE_KEY) || "{}");
+    setNdaForm(parsed.data || ndaDefaults);
+    ndaSections = migrateNdaSections(parsed.sections);
+  } catch {
+    setNdaForm(ndaDefaults);
+    ndaSections = structuredClone(ndaSectionDefaults);
+  }
 }
 
 function getDrafts() {
@@ -448,7 +749,7 @@ function draftLabel(data) {
 }
 
 function renderDraftOptions(selectedId = "") {
-  const drafts = getDrafts();
+  const drafts = activeMode === "nda" ? getNdaDrafts() : getDrafts();
   draftSelect.innerHTML = drafts.length
     ? `<option value="">Select saved draft</option>${drafts
         .map(
@@ -469,7 +770,7 @@ function setSaveStatus(message) {
   }, 3500);
 }
 
-function saveDraft() {
+function saveBillDraft() {
   const data = getData();
   const id = data.billNumber?.trim() || `draft-${Date.now()}`;
   const drafts = getDrafts();
@@ -492,8 +793,57 @@ function saveDraft() {
   setSaveStatus(`Saved ${draft.label}`);
 }
 
+function saveNdaDraft() {
+  const data = getNdaData();
+  const id = data.docRef?.trim() || `nda-${Date.now()}`;
+  const drafts = getNdaDrafts();
+  const existingIndex = drafts.findIndex((draft) => draft.id === id);
+  const draft = {
+    id,
+    label: `${id} - ${data.clientName || "Untitled client"}`,
+    updatedAt: new Date().toISOString(),
+    data,
+    sections: structuredClone(ndaSections),
+  };
+  if (existingIndex >= 0) drafts[existingIndex] = draft;
+  else drafts.unshift(draft);
+  localStorage.setItem(NDA_DRAFTS_KEY, JSON.stringify(drafts.slice(0, 30)));
+  renderDraftOptions(id);
+  setSaveStatus(`Saved ${draft.label}`);
+}
+
+function saveDraft() {
+  if (activeMode === "nda") saveNdaDraft();
+  else saveBillDraft();
+}
+
+function getNdaDrafts() {
+  try {
+    const drafts = JSON.parse(localStorage.getItem(NDA_DRAFTS_KEY) || "[]");
+    return Array.isArray(drafts) ? drafts : [];
+  } catch {
+    return [];
+  }
+}
+
 function loadSelectedDraft() {
   const id = draftSelect.value;
+  if (activeMode === "nda") {
+    const draft = getNdaDrafts().find((entry) => entry.id === id);
+    if (!draft) {
+      setSaveStatus("Choose a saved NDA draft first.");
+      return;
+    }
+    setNdaForm(draft.data || ndaDefaults);
+    ndaSections = migrateNdaSections(draft.sections);
+    revertedNdaSections.clear();
+    renderNdaSectionsEditor();
+    currentPreviewPage = 0;
+    renderPreview();
+    renderDraftOptions(id);
+    setSaveStatus(`Loaded ${draft.label}`);
+    return;
+  }
   const draft = getDrafts().find((entry) => entry.id === id);
   if (!draft) {
     setSaveStatus("Choose a saved draft first.");
@@ -530,6 +880,19 @@ function loadState() {
   } catch {
     setForm(defaults);
   }
+}
+
+function switchMode(mode) {
+  activeMode = mode;
+  currentPreviewPage = 0;
+  billModeButton.classList.toggle("active", mode === "bill");
+  ndaModeButton.classList.toggle("active", mode === "nda");
+  form.hidden = mode !== "bill";
+  ndaForm.hidden = mode !== "nda";
+  saveDraftButton.textContent = mode === "nda" ? "Save NDA" : "Save Draft";
+  downloadButton.textContent = mode === "nda" ? "Download NDA PDF" : "Download PDF";
+  renderDraftOptions();
+  renderPreview();
 }
 
 function migrateItems(savedItems) {
@@ -623,7 +986,7 @@ function pdfEscape(value) {
   return String(value ?? "").replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
 }
 
-async function createPdf() {
+async function createBillPdf() {
   const data = getData();
   const pages = paginateSections(buildSections(data));
   const templateBytes = new Uint8Array(await (await fetch("assets/cyphrix-template.jpg")).arrayBuffer());
@@ -835,23 +1198,220 @@ async function createPdf() {
   return new Blob(chunks, { type: "application/pdf" });
 }
 
+async function createNdaPdf() {
+  const data = getNdaData();
+  const pageWidth = 612.24;
+  const pageHeight = 957.6;
+  const encoder = new TextEncoder();
+  const chunks = [];
+  const offsets = [0];
+  let byteLength = 0;
+
+  const pageCount = ndaSectionGroups.length;
+  const imageBytes = [];
+  for (let i = 0; i < pageCount; i += 1) {
+    imageBytes.push(new Uint8Array(await (await fetch("assets/cyphrix-template.jpg")).arrayBuffer()));
+  }
+
+  function appendString(value) {
+    const bytes = encoder.encode(value);
+    chunks.push(bytes);
+    byteLength += bytes.length;
+  }
+  function appendBytes(bytes) {
+    chunks.push(bytes);
+    byteLength += bytes.length;
+  }
+  function startObject(index) {
+    offsets[index] = byteLength;
+    appendString(`${index} 0 obj\n`);
+  }
+  function writeObject(index, body) {
+    startObject(index);
+    appendString(`${body}\nendobj\n`);
+  }
+  function pdfText(content, x, y, size = 8.6, bold = false) {
+    return `BT 0.07 0.09 0.13 rg ${bold ? "/F2" : "/F1"} ${size} Tf ${x.toFixed(2)} ${y.toFixed(2)} Td (${pdfEscape(content)}) Tj ET`;
+  }
+  function textBlock(value, x, y, maxChars, size = 8.4) {
+    return splitTextLines(value, maxChars)
+      .slice(0, 8)
+      .map((line, index) => pdfText(line, x, y - index * (size + 3), size))
+      .join("\n");
+  }
+
+  function fillRect(x, y, w, h, color = "1 1 1") {
+    return `${color} rg ${x} ${y} ${w} ${h} re f`;
+  }
+  function strokeRect(x, y, w, h, color = "0.70 0.78 0.85", width = 0.7) {
+    return `${color} RG ${width} w ${x} ${y} ${w} ${h} re S`;
+  }
+
+  function buildNdaPdfContent(pageIndex) {
+    const content = [`q ${pageWidth} 0 0 ${pageHeight} 0 0 cm /Im${pageIndex} Do Q`];
+    let y = 645;
+
+    function addText(value, x, size = 8.2, bold = false, maxChars = 82) {
+      wrapText(value, maxChars).forEach((line) => {
+        content.push(pdfText(line, x, y, size, bold));
+        y -= size + 3.2;
+      });
+    }
+
+    function addSection(sectionIndex) {
+      const section = ndaSections[sectionIndex] || ndaSectionDefaults[sectionIndex];
+      y -= 7;
+      content.push(fillRect(82, y - 7, 448, 18, "0.86 0.96 0.98"));
+      content.push(fillRect(82, y - 7, 4, 18, "0.06 0.72 0.93"));
+      content.push(fillRect(92, y - 5, 16, 16, "0.06 0.56 0.82"));
+      content.push(pdfText(String(sectionIndex + 1), 97, y, 7.4, true));
+      content.push(pdfText(section.title.toUpperCase(), 116, y, 8.1, true));
+      y -= 18;
+      addText(section.body, 82, 8.1, false, 82);
+    }
+
+    if (pageIndex === 0) {
+      content.push("0.03 0.66 0.86 rg");
+      content.push(pdfText("NON-DISCLOSURE & PAYMENT TERMS AGREEMENT", 155, y, 12.5, true).replace("0.07 0.09 0.13 rg", "0.02 0.63 0.84 rg"));
+      y -= 11;
+      content.push(pdfText("Cyphrix Technologies - Trust. Encrypted.", 232, y, 6.8));
+      y -= 23;
+      content.push("0.75 0.84 0.90 RG 0.7 w 82 683 m 530 683 l S");
+      content.push(pdfText(`Effective Date: ${formatDate(data.effectiveDate)}`, 82, y, 7.5, true));
+      content.push(pdfText(`Doc Ref: ${data.docRef}`, 330, y, 7.5, true));
+      y -= 23;
+      content.push(fillRect(82, y - 7, 448, 26, "0.11 0.26 0.46"));
+      content.push(pdfText("SERVICE PROVIDER", 160, y + 2, 7.4, true).replace("0.07 0.09 0.13 rg", "1 1 1 rg"));
+      content.push(pdfText("CLIENT (RECEIVING PARTY)", 362, y + 2, 7.4, true).replace("0.07 0.09 0.13 rg", "1 1 1 rg"));
+      y -= 26;
+      content.push(fillRect(82, y - 42, 448, 45, "0.88 0.97 0.99"));
+      content.push(strokeRect(82, y - 42, 448, 71));
+      content.push("0.70 0.78 0.85 RG 0.7 w 306 615 m 306 544 l S");
+      content.push(pdfText("Cyphrix Technologies", 92, y - 8, 7.4, true));
+      content.push(pdfText("Email: cyphrixsupport@cyphrixtech.com", 92, y - 22, 7.1));
+      content.push(pdfText("Web: https://cyphrixtech.com/", 92, y - 35, 7.1));
+      content.push(pdfText(`Name / Company: ${data.clientName || "Client Name"}`, 316, y - 8, 7.1));
+      content.push(pdfText(`Email: ${data.clientEmail || "-"}`, 316, y - 22, 7.1));
+      content.push(pdfText(`Website: ${data.clientWebsite || "-"}`, 316, y - 35, 7.1));
+      y -= 58;
+      addText(`Cyphrix Technologies ("Service Provider") and the Client are collectively the "Parties." This Agreement formalises Cyphrix Technologies' commitment to Trust. Encrypted.`, 82, 6.7, false, 108);
+      y -= 6;
+      content.push(fillRect(82, y - 8, 448, 20, "0.11 0.26 0.46"));
+      content.push(pdfText("PART A - NON-DISCLOSURE AGREEMENT", 236, y - 1, 8, true).replace("0.07 0.09 0.13 rg", "1 1 1 rg"));
+      y -= 18;
+    }
+
+    if (ndaSectionGroups[pageIndex].includes(9)) {
+      content.push(pdfText("PART B - PAYMENT TERMS AGREEMENT", 82, y, 8.2, true));
+      y -= 18;
+      content.push(pdfText("Fee Type", 88, y, 7.5, true));
+      content.push(pdfText("Rate / Amount", 240, y, 7.5, true));
+      content.push(pdfText("Notes", 370, y, 7.5, true));
+      y -= 13;
+      [
+        ["Fixed Project Fee", data.fixedFee || "-", "Defined scope per SOW"],
+        ["Hourly Rate", data.hourlyRate || "-", "Billed with time logs"],
+        ["Retainer", data.retainer || "-", "Reserved capacity"],
+      ].forEach((row) => {
+        content.push(pdfText(row[0], 88, y, 7.2));
+        content.push(pdfText(row[1], 240, y, 7.2, true));
+        content.push(pdfText(row[2], 370, y, 7.2));
+        y -= 12;
+      });
+      y -= 4;
+      addText(`Payment Notes: ${data.paymentNotes || "-"}`, 82, 8.1, false, 86);
+    }
+
+    if (pageIndex === 0) {
+      addSection(0);
+      y -= 4;
+      addText(`Project / Service: ${data.projectService || "-"}`, 82, 8.1, true, 86);
+      addSection(1);
+    } else {
+      ndaSectionGroups[pageIndex].forEach(addSection);
+    }
+
+    if (pageIndex === ndaSectionGroups.length - 1) {
+      y = Math.min(y - 24, 330);
+      content.push("0.45 0.50 0.58 RG 0.8 w 82 318 m 265 318 l S");
+      content.push("0.45 0.50 0.58 RG 0.8 w 330 318 m 512 318 l S");
+      content.push(pdfText(data.providerSignature || data.providerSignatory || "Cyphrix Technologies", 92, 340, 13, true));
+      content.push(pdfText(data.clientSignature || data.clientSignatory || "Client Signature", 340, 340, 13, true));
+      content.push(pdfText(data.providerSignatory || "Cyphrix Technologies", 92, 300, 7.5, true));
+      content.push(pdfText("Service Provider", 92, 289, 7));
+      content.push(pdfText(`Date: ${formatDate(data.effectiveDate)}`, 92, 278, 7));
+      content.push(pdfText(data.clientSignatory || data.clientName || "Client", 340, 300, 7.5, true));
+      content.push(pdfText("Receiving Party", 340, 289, 7));
+      content.push(pdfText(`Date: ${formatDate(data.effectiveDate)}`, 340, 278, 7));
+    }
+
+    return content.join("\n");
+  }
+
+  const pageContents = Array.from({ length: pageCount }, (_, index) => buildNdaPdfContent(index));
+
+  const imageRefs = imageBytes.map((_, index) => 5 + index);
+  const streamStart = 5 + pageCount;
+  const pageStart = streamStart + pageCount;
+  const pageRefs = Array.from({ length: pageCount }, (_, index) => pageStart + index);
+
+  appendString("%PDF-1.4\n");
+  writeObject(1, "<< /Type /Catalog /Pages 2 0 R >>");
+  writeObject(2, `<< /Type /Pages /Kids [${pageRefs.map((ref) => `${ref} 0 R`).join(" ")}] /Count ${pageCount} >>`);
+  writeObject(3, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");
+  writeObject(4, "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>");
+
+  imageBytes.forEach((bytes, index) => {
+    startObject(imageRefs[index]);
+    appendString(`<< /Type /XObject /Subtype /Image /Width 1225 /Height 1916 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${bytes.length} >>\nstream\n`);
+    appendBytes(bytes);
+    appendString("\nendstream\nendobj\n");
+  });
+
+  pageContents.forEach((content, index) => {
+    const streamBytes = encoder.encode(content);
+    startObject(streamStart + index);
+    appendString(`<< /Length ${streamBytes.length} >>\nstream\n`);
+    appendBytes(streamBytes);
+    appendString("\nendstream\nendobj\n");
+  });
+
+  pageContents.forEach((_, index) => {
+    writeObject(
+      pageRefs[index],
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${pageWidth} ${pageHeight}] /Resources << /XObject << /Im${index} ${imageRefs[index]} 0 R >> /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${streamStart + index} 0 R >>`
+    );
+  });
+
+  const objectCount = pageStart + pageCount - 1;
+  const xref = byteLength;
+  appendString(`xref\n0 ${objectCount + 1}\n0000000000 65535 f \n`);
+  for (let index = 1; index <= objectCount; index += 1) {
+    appendString(`${String(offsets[index]).padStart(10, "0")} 00000 n \n`);
+  }
+  appendString(`trailer\n<< /Size ${objectCount + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`);
+  return new Blob(chunks, { type: "application/pdf" });
+}
+
 async function downloadPdf() {
   const data = getData();
   downloadButton.disabled = true;
   downloadButton.textContent = "Preparing PDF";
   try {
-    const blob = await createPdf();
+    const blob = activeMode === "nda" ? await createNdaPdf() : await createBillPdf();
     const link = document.createElement("a");
-    const safeNumber = String(data.billNumber || "cyphrix-bill").replace(/[^a-z0-9-]+/gi, "-");
+    const ndaData = activeMode === "nda" ? getNdaData() : null;
+    const fileSeed = activeMode === "nda" ? ndaData.docRef || "cyphrix-nda" : data.billNumber || "cyphrix-bill";
+    const safeNumber = String(fileSeed).replace(/[^a-z0-9-]+/gi, "-");
     link.href = URL.createObjectURL(blob);
-    link.download = `${safeNumber}-${String(data.documentType || "invoice").toLowerCase()}.pdf`;
+    link.download = activeMode === "nda" ? `${safeNumber}-nda.pdf` : `${safeNumber}-${String(data.documentType || "invoice").toLowerCase()}.pdf`;
     document.body.appendChild(link);
     link.click();
     link.remove();
     setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   } finally {
     downloadButton.disabled = false;
-    downloadButton.textContent = "Download PDF";
+    downloadButton.textContent = activeMode === "nda" ? "Download NDA PDF" : "Download PDF";
   }
 }
 
@@ -930,6 +1490,27 @@ resetButton.addEventListener("click", () => {
 });
 
 form?.addEventListener("input", renderPreview);
+ndaForm?.addEventListener("input", renderPreview);
+ndaSectionsEditor?.addEventListener("input", (event) => {
+  const target = event.target;
+  const index = Number(target.dataset.ndaSection);
+  const field = target.dataset.field;
+  if (!Number.isNaN(index) && field) {
+    ndaSections[index][field] = target.value;
+    revertedNdaSections.delete(index);
+    target.closest(".nda-section-card")?.classList.remove("reverted");
+    renderPreview();
+  }
+});
+ndaSectionsEditor?.addEventListener("click", (event) => {
+  const index = Number(event.target.dataset.revertNda);
+  if (!Number.isNaN(index)) {
+    ndaSections[index] = structuredClone(ndaSectionDefaults[index]);
+    revertedNdaSections.add(index);
+    renderNdaSectionsEditor();
+    renderPreview();
+  }
+});
 downloadButton?.addEventListener("click", downloadPdf);
 saveDraftButton?.addEventListener("click", saveDraft);
 loadDraftButton?.addEventListener("click", loadSelectedDraft);
@@ -954,16 +1535,33 @@ clearSignatureButton?.addEventListener("click", () => {
   drawSignatureCanvas();
   renderPreview();
 });
+billModeButton?.addEventListener("click", () => switchMode("bill"));
+ndaModeButton?.addEventListener("click", () => switchMode("nda"));
+resetNdaButton?.addEventListener("click", () => {
+  localStorage.removeItem(NDA_STORAGE_KEY);
+  setNdaForm(ndaDefaults);
+  ndaSections = structuredClone(ndaSectionDefaults);
+  revertedNdaSections.clear();
+  renderNdaSectionsEditor();
+  currentPreviewPage = 0;
+  renderPreview();
+  setSaveStatus("NDA form reset. Saved NDA drafts are still available.");
+});
 
 loadState();
+loadNdaState();
 renderDraftOptions();
 renderItemsEditor();
 renderBankDetailsEditor();
+renderNdaSectionsEditor();
 drawSignatureCanvas();
-renderPreview();
+switchMode("bill");
 
 window.cyphrixBillGenerator = {
-  createPdf,
+  createPdf: createBillPdf,
+  createBillPdf,
+  createNdaPdf,
   getData,
+  getNdaData,
   calculate: () => calculate(getData()),
 };
