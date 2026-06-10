@@ -42,9 +42,9 @@ select {
 
 .app-shell {
   display: grid;
-  grid-template-columns: minmax(340px, 500px) minmax(560px, 1fr);
+  grid-template-columns: minmax(520px, 680px) minmax(520px, 1fr);
   gap: 24px;
-  width: min(1480px, calc(100vw - 32px));
+  width: min(1700px, calc(100vw - 32px));
   margin: 0 auto;
   padding: 24px 0;
 }
@@ -559,8 +559,38 @@ button:disabled {
 }
 
 .nda-generated-section p {
-  margin: 0;
+  margin: 0 0 0.55%;
   white-space: pre-line;
+}
+
+.nda-generated-section ul {
+  margin: 0.6% 0 0.7%;
+  padding-left: 4.2%;
+}
+
+.nda-generated-section li {
+  margin-bottom: 0.35%;
+}
+
+.nda-yellow-note {
+  margin: 0.9% 0 1.1%;
+  padding: 0.8% 1%;
+  border-left: 4px solid #f1b90b;
+  border-radius: 4px;
+  background: rgba(255, 246, 202, 0.94);
+  color: #473900;
+}
+
+.nda-yellow-note p {
+  margin-bottom: 0.35%;
+}
+
+.nda-yellow-note ul {
+  margin-top: 0.35%;
+}
+
+.nda-line-space {
+  height: 0.7em;
 }
 
 .nda-fee-table {
@@ -605,6 +635,15 @@ button:disabled {
   font-size: 2em;
 }
 
+.client-signature-box {
+  width: min(100%, 210px);
+  height: 46px;
+  margin: 0 0 10px;
+  border: 1.5px solid rgba(32, 38, 50, 0.55);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
 .nda-sections-editor {
   display: grid;
   gap: 10px;
@@ -623,6 +662,24 @@ button:disabled {
   border-color: #10b8ed;
   background: #eefbff;
   box-shadow: 0 0 0 3px rgba(16, 184, 237, 0.15);
+}
+
+.yellow-note-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #26344a;
+  font-weight: 800;
+}
+
+.yellow-note-toggle input {
+  width: 16px;
+  height: 16px;
+}
+
+.yellow-note-field textarea {
+  border-color: #ead178;
+  background: #fffdf0;
 }
 
 .template-page[hidden] {
@@ -950,6 +1007,7 @@ button:disabled {
 @media (max-width: 1100px) {
   .app-shell {
     grid-template-columns: 1fr;
+    width: min(100% - 12px, 1700px);
   }
 
   .form-panel,

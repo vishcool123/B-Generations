@@ -26,6 +26,7 @@ const STORAGE_KEY = "cyphrix.bill.generator";
 const DRAFTS_KEY = "cyphrix.bill.generator.drafts";
 const NDA_STORAGE_KEY = "cyphrix.nda.generator";
 const NDA_DRAFTS_KEY = "cyphrix.nda.generator.drafts";
+const NDA_CONTENT_VERSION = "pdf-context-v1";
 
 let activeMode = "bill";
 let items = [
@@ -96,103 +97,91 @@ const ndaSectionDefaults = [
   {
     title: "Purpose",
     body:
-      "The Parties wish to explore and/or enter into a professional engagement whereby Cyphrix Technologies will provide technology services, including software development, web and mobile application development, blockchain solutions, cybersecurity consulting, and related technical services.",
+      'The Parties wish to explore and/or enter into a professional engagement whereby Cyphrix Technologies will provide technology services including but not limited to software development, blockchain and smart contract solutions, web and mobile application development, cybersecurity consulting, and related technical services (the "Project"). In the course of this engagement, both Parties may disclose information of a confidential and proprietary nature.',
   },
   {
     title: "Definition of Confidential Information",
     body:
-      "Confidential Information includes technical plans, source code, designs, business logic, credentials, customer data, pricing, proposals, project requirements, documents, processes, and any information marked confidential or reasonably understood to be confidential.",
+      '"Confidential Information" means any non-public information disclosed by either Party in connection with the Project - orally, in writing, electronically, or by any other means. For Cyphrix Technologies, this specifically includes:\n- Proprietary development frameworks, tools, codebases, and internal libraries\n- System architecture designs, technical documentation, and deployment configurations\n- Smart contract logic, blockchain integration methods, and cryptographic implementations\n- Pricing structures, project proposals, and client acquisition strategies\n- Business plans, roadmaps, investor information, and partnership details\n- Source code (delivered or undelivered), API keys, credentials, and access tokens\n- Internal processes, workflows, team structures, and operational methodologies\n- Any information marked "Confidential" or that a reasonable person would understand to be confidential\n\nFor the Client, Confidential Information includes project requirements, business logic, user data specifications, and any proprietary information shared to enable Cyphrix Technologies to deliver the agreed services.',
   },
   {
     title: "Obligations of the Receiving Party",
     body:
-      "Each receiving Party shall protect Confidential Information with reasonable care, not disclose it to third parties without written consent, use it only for the Project, restrict access to need-to-know personnel, and promptly report any suspected unauthorized disclosure.",
+      "Each Party receiving Confidential Information agrees to:\n- Protect it with at least the same degree of care used for its own confidential information, but no less than reasonable care\n- Not disclose it to any third party without prior written consent from the disclosing Party\n- Use it exclusively for the purpose of evaluating or executing the Project\n- Restrict access to personnel with a strict need-to-know, each bound by equivalent obligations\n- Not reverse-engineer, decompile, or attempt to derive the underlying logic of any disclosed technology\n- Immediately notify the disclosing Party upon discovering any actual or suspected unauthorised disclosure\n\nBoth sides must guard each other's secrets carefully - you cannot share, copy, or reverse-engineer anything received, and must report any leak immediately.",
   },
   {
-    title: "Exclusions",
+    title: "Exclusions from Confidentiality",
     body:
-      "Confidential Information does not include information that is publicly available without breach, already known before disclosure, independently developed without use of Confidential Information, or lawfully received from a third party without restriction.",
+      "Obligations in Section 3 do not apply to information that the receiving Party can demonstrate:\n- Was already in the public domain at the time of disclosure through no fault of the receiving Party\n- Was already rightfully known to the receiving Party prior to disclosure, without restriction\n- Was independently developed without reference to the Confidential Information\n- Was received from a third party legitimately and without confidentiality restrictions\n- Is required to be disclosed by applicable law, regulation, or court order, provided prompt prior written notice is given and reasonable cooperation is extended to seek protective relief",
   },
   {
-    title: "Term and Survival",
+    title: "Term of Confidentiality",
     body:
-      "This Agreement begins on the Effective Date and continues through the engagement. Confidentiality obligations survive for three years after termination, or longer where trade secrets or applicable law require continued protection.",
+      "This Agreement is effective from the Effective Date for a period of two (2) years. Confidentiality obligations under Sections 2, 3, and 7 survive expiration or termination of this Agreement for a further period of three (3) years, and survive indefinitely with respect to trade secrets.",
   },
   {
     title: "Return or Destruction of Information",
     body:
-      "Upon written request or termination, each Party shall return or securely destroy Confidential Information received from the other Party, including copies, notes, and derivatives, and certify such action within five business days.",
+      "Upon written request or upon termination of the engagement, each Party shall promptly return or securely destroy all Confidential Information received from the other Party (including copies, notes, and derivatives), and shall provide written certification of such return or destruction within five (5) business days.",
   },
   {
     title: "Intellectual Property and Ownership",
     body:
-      "All intellectual property created by Cyphrix Technologies remains the property of Cyphrix Technologies until full payment is received. Upon full payment, ownership of agreed deliverables transfers to the Client as defined in the Statement of Work.",
+      "All intellectual property created by Cyphrix Technologies - including code, designs, documentation, and deliverables - remains the exclusive property of Cyphrix Technologies until full payment has been received for the applicable project phase. Upon receipt of full payment, ownership of the agreed deliverables transfers to the Client as specified in the Statement of Work.\n\nCyphrix Technologies retains perpetual rights to:\n- Any pre-existing IP, frameworks, or tools used in delivery\n- Generic, non-Client-specific methodologies and learnings derived from the engagement\n- Portfolio rights to reference the project publicly unless the Client requests confidentiality in writing\n\nNothing in this Agreement grants either Party any license, trademark, or patent rights beyond what is explicitly stated.\n\nYou own the final product only after full payment - until then it's ours. We always keep our tools, methods, and the right to show this work in our portfolio.",
   },
   {
-    title: "No Warranty or Obligation",
+    title: "Non-Solicitation",
     body:
-      "Confidential Information is provided as-is for evaluation or project execution. Nothing in this Agreement requires either Party to proceed with a transaction unless a separate written agreement or Statement of Work is signed.",
+      "During the term of this Agreement and for one (1) year following its termination, neither Party shall directly solicit or hire any employee, contractor, or consultant of the other Party who was involved in the Project, without prior written consent.\n\nFor one year after the project ends, you cannot poach our developers or team members - and we won't recruit yours either.",
   },
   {
     title: "Remedies",
     body:
-      "Unauthorized disclosure may cause irreparable harm. The disclosing Party may seek injunctive relief, damages, and any other remedies available under law or equity.",
+      "Both Parties acknowledge that a breach of confidentiality obligations may cause irreparable harm for which monetary damages would be an insufficient remedy. Accordingly, Cyphrix Technologies shall be entitled to seek immediate injunctive or other equitable relief from a court of competent jurisdiction, without the requirement to post bond, in addition to all other remedies at law or in equity.\n\nIf you leak our secrets, we can go to court immediately to stop the damage - we don't have to wait or only ask for money.",
   },
   {
     title: "Project Fees",
     body:
-      "Fees for each engagement shall be agreed in a separate Statement of Work or project proposal issued by Cyphrix Technologies. Unless stated otherwise, fees are exclusive of applicable taxes.",
+      'Fees for each engagement shall be agreed upon in a separate Statement of Work ("SOW") or project proposal issued by Cyphrix Technologies. All fees are exclusive of applicable taxes (GST, VAT, or equivalent) unless stated otherwise.',
   },
   {
     title: "Payment Schedule",
     body:
-      "Unless the applicable Statement of Work specifies otherwise, payment is due according to the agreed milestone schedule. Work may begin only after the required deposit or advance payment is received.",
+      "Unless the applicable SOW specifies otherwise:\n- 50% deposit is due upon signing of this Agreement or the applicable SOW, before work commences\n- 25% milestone payment is due upon completion of the agreed mid-project milestone\n- 25% final payment is due upon delivery of final files, deployables, or completion of the agreed scope\n- All invoices are due within 7 calendar days of the invoice date",
   },
   {
     title: "Late Payments",
     body:
-      "If payment is not received by the due date, Cyphrix Technologies may suspend work, access, support, and delivery without liability until the account is settled. Late balances may accrue interest as permitted by law.",
+      "If any amount is not received by the due date:\n- Interest accrues at 2% per month (or the maximum rate permitted by applicable law) on the overdue balance\n- Cyphrix Technologies may suspend all active work, access, and deliverables without liability until the account is settled\n- Final deliverables, source code, credentials, and deployment access will be withheld until all outstanding amounts are cleared\n- Cyphrix Technologies reserves the right to terminate the engagement after 14 days of non-payment, without refund of amounts already earned\n\nPay on time - late payments attract 2% monthly interest, we pause all work, withhold your files, and can cancel the project entirely after 14 days.",
   },
   {
-    title: "Taxes and Expenses",
+    title: "Refund Policy",
     body:
-      "The Client is responsible for applicable taxes, third-party service fees, hosting, licenses, subscriptions, and approved out-of-pocket expenses unless explicitly included in the written scope.",
+      "The initial deposit is strictly non-refundable once work has commenced. Additional refund conditions:\n- If the Client cancels after commencement, payment is owed for all work completed to the cancellation date, calculated pro-rata against the agreed project fee\n- No refunds are payable once final deliverables have been approved or accepted by the Client (expressly or by silence after 7 days)\n- Disputes regarding deliverable quality must be raised within 7 days of delivery - silence constitutes acceptance\n\nThe deposit is gone once we start. If you cancel mid-project, you pay for what's done. Review deliverables within 7 days or they're considered accepted.",
   },
   {
-    title: "Change Requests",
+    title: "Invoicing and Currency",
     body:
-      "Any change outside the agreed scope may require a revised timeline and additional fees. Cyphrix Technologies may pause out-of-scope work until the Client approves the change request in writing.",
+      "All invoices are issued electronically via cyphrixsupport@cyphrixtech.com. Unless otherwise agreed in writing, payments shall be made in INR or USD via bank transfer, UPI, or another mutually agreed payment method. The Client bears responsibility for all transaction fees, foreign exchange costs, and applicable withholding taxes.",
   },
   {
     title: "Termination",
     body:
-      "Either Party may terminate the engagement by written notice. The Client remains responsible for fees for work completed, committed resources, approved expenses, and any non-cancellable third-party costs.",
+      "Either Party may terminate this Agreement with 14 days' written notice. Upon termination, the Client shall pay for all work completed up to the termination date. Sections 3, 7, 8, 9, 12, and 13 survive termination.",
   },
   {
-    title: "Governing Law and Dispute Resolution",
+    title: "Dispute Resolution",
     body:
-      "This Agreement shall be governed by applicable laws of India unless otherwise agreed in writing. The Parties shall first attempt to resolve disputes through good-faith discussion before pursuing formal remedies.",
+      "The Parties shall first attempt to resolve any dispute through good-faith negotiation within 30 days of written notice. If unresolved, disputes shall be referred to binding arbitration under the rules of an agreed arbitral body before either Party may initiate litigation.",
   },
   {
-    title: "Entire Agreement and Signatures",
+    title: "Governing Law",
     body:
-      "This Agreement, together with any signed Statement of Work, represents the understanding between the Parties regarding confidentiality and payment terms. Electronic signatures are valid and binding.",
+      "This Agreement is governed by the laws of India. The exclusive jurisdiction for any legal proceedings shall be the courts of Bhavnagar, Gujarat, India.",
   },
 ];
 
 ndaSections = structuredClone(ndaSectionDefaults);
-
-const ndaSectionGroups = [
-  [0, 1],
-  [2, 3],
-  [4, 5],
-  [6, 7],
-  [8],
-  [9, 10],
-  [11, 12],
-  [13, 14],
-  [15, 16],
-];
 
 function toInputDate(date) {
   return date.toISOString().slice(0, 10);
@@ -315,18 +304,32 @@ function renderNdaSectionsEditor() {
             Section Text
             <textarea data-nda-section="${index}" data-field="body" rows="5">${escapeHtml(section.body)}</textarea>
           </label>
+          <label class="yellow-note-toggle">
+            <input data-nda-section="${index}" data-field="noteEnabled" type="checkbox" ${section.noteEnabled ? "checked" : ""} />
+            Add yellow note box for this section
+          </label>
+          <label class="yellow-note-field">
+            Yellow Box Text
+            <textarea data-nda-section="${index}" data-field="note" rows="3" placeholder="Important note, exception, or client-specific instruction">${escapeHtml(section.note || "")}</textarea>
+          </label>
         </section>
       `
     )
     .join("");
 }
 
+function normalizeNdaSection(section, fallback) {
+  return {
+    title: section?.title || fallback.title,
+    body: section?.body || fallback.body,
+    noteEnabled: Boolean(section?.noteEnabled),
+    note: section?.note || "",
+  };
+}
+
 function migrateNdaSections(savedSections) {
   if (!Array.isArray(savedSections) || !savedSections.length) return structuredClone(ndaSectionDefaults);
-  return ndaSectionDefaults.map((section, index) => ({
-    title: savedSections[index]?.title || section.title,
-    body: savedSections[index]?.body || section.body,
-  }));
+  return ndaSectionDefaults.map((section, index) => normalizeNdaSection(savedSections[index], section));
 }
 
 function calculate(data) {
@@ -613,7 +616,8 @@ function renderSignaturePreview(signature) {
 
 function renderNdaPreview() {
   const data = getNdaData();
-  const pages = buildNdaPages(data);
+  const pageModels = buildNdaPageModels(data);
+  const pages = buildNdaPages(data, pageModels);
 
   latestPreviewPages = pages;
   currentPreviewPage = Math.min(currentPreviewPage, pages.length - 1);
@@ -633,10 +637,113 @@ function renderNdaPreview() {
   saveNdaState();
 }
 
-function buildNdaPages(data) {
-  return ndaSectionGroups.map((sectionIndexes, pageIndex) => {
-    const sectionsHtml = sectionIndexes.map((sectionIndex) => renderNdaSectionForPreview(sectionIndex)).join("");
-    if (pageIndex === 0) {
+function buildNdaPageModels(data) {
+  const contentLimit = 64;
+  const firstPage = { first: true, sectionIndexes: [], paymentIntro: false, signature: false };
+  const pages = [firstPage];
+  const firstPageUsed =
+    estimateNdaTopMatterHeight(data) +
+    estimateNdaSectionHeight(0) +
+    estimateNdaProjectLineHeight(data.projectService) +
+    estimateNdaSectionHeight(1);
+
+  let current = firstPage;
+  let used = firstPageUsed;
+
+  function startPage(extra = {}) {
+    current = { first: false, sectionIndexes: [], paymentIntro: false, signature: false, ...extra };
+    pages.push(current);
+    used = extra.paymentIntro ? estimateNdaPaymentIntroHeight(data) : 0;
+  }
+
+  for (let index = 2; index < ndaSections.length; index += 1) {
+    if (index === 9 && used > 0) startPage({ paymentIntro: true });
+    else if (index === 9) {
+      current.paymentIntro = true;
+      used += estimateNdaPaymentIntroHeight(data);
+    }
+
+    const sectionHeight = estimateNdaSectionHeight(index);
+    const gap = current.sectionIndexes.length || current.paymentIntro ? 2 : 0;
+    if (used && used + gap + sectionHeight > contentLimit) {
+      startPage({ paymentIntro: index === 9 });
+    }
+    current.sectionIndexes.push(index);
+    used += (current.sectionIndexes.length > 1 ? 2 : 0) + sectionHeight;
+  }
+
+  const signatureHeight = 10;
+  if (used + signatureHeight > contentLimit) startPage();
+  current.signature = true;
+  return pages;
+}
+
+function estimateNdaTopMatterHeight(data) {
+  const clientLines = Math.max(
+    3,
+    wrapText(data.clientName || "Client Name", 44).length +
+      wrapText(data.clientEmail || "-", 44).length +
+      wrapText(data.clientWebsite || "-", 44).length
+  );
+  return 27 + clientLines * 2.4;
+}
+
+function estimateNdaProjectLineHeight(value) {
+  return 2.8 + wrapText(`Project / Service: ${value || "-"}`, 92).length * 1.7;
+}
+
+function estimateNdaPaymentIntroHeight(data) {
+  const notes = wrapText(`Payment Notes: ${data.paymentNotes || "-"}`, 92).length;
+  return 16 + notes * 1.7;
+}
+
+function estimateNdaSectionHeight(index) {
+  const section = ndaSections[index] || ndaSectionDefaults[index];
+  const bodyLines = parseNdaLines(section.body).reduce((sum, line) => {
+    if (line.type === "space") return sum + 0.7;
+    return sum + Math.max(1, wrapText(line.text, line.type === "bullet" ? 88 : 92).length);
+  }, 0);
+  const noteLines =
+    section.noteEnabled && section.note ? Math.max(1, splitTextLines(section.note, 88).length) : 0;
+  return 3.5 + bodyLines * 1.65 + (noteLines ? 2.8 + noteLines * 1.55 : 0);
+}
+
+function renderNdaPaymentIntro(data) {
+  return `
+    <h3 class="nda-part-title">PART B - PAYMENT TERMS AGREEMENT</h3>
+    <table class="nda-fee-table">
+      <tr><th>Fee Type</th><th>Rate / Amount</th><th>Notes</th></tr>
+      <tr><td>Fixed Project Fee</td><td>${escapeHtml(data.fixedFee || "-")}</td><td>Defined scope per SOW</td></tr>
+      <tr><td>Hourly Rate</td><td>${escapeHtml(data.hourlyRate || "-")}</td><td>Billed with time logs</td></tr>
+      <tr><td>Retainer</td><td>${escapeHtml(data.retainer || "-")}</td><td>Reserved capacity</td></tr>
+    </table>
+    <div class="nda-project-line"><strong>Payment Notes:</strong> ${escapeHtml(data.paymentNotes || "-")}</div>
+  `;
+}
+
+function renderNdaSignatureBlock(data) {
+  return `
+    <div class="nda-signature-grid">
+      <div>
+        <p class="signature-text">${escapeHtml(data.providerSignature || data.providerSignatory || "Cyphrix Technologies")}</p>
+        <strong>${escapeHtml(data.providerSignatory || "Cyphrix Technologies")}</strong>
+        <span>Service Provider</span>
+        <span>Date: ${escapeHtml(formatDate(data.effectiveDate))}</span>
+      </div>
+      <div>
+        <div class="client-signature-box" aria-label="Client signature box"></div>
+        <strong>${escapeHtml(data.clientSignatory || data.clientName || "Client")}</strong>
+        <span>Receiving Party</span>
+        <span>Date: ${escapeHtml(formatDate(data.effectiveDate))}</span>
+      </div>
+    </div>
+  `;
+}
+
+function buildNdaPages(data, pageModels = buildNdaPageModels(data)) {
+  return pageModels.map((page) => {
+    const sectionsHtml = page.sectionIndexes.map((sectionIndex) => renderNdaSectionForPreview(sectionIndex)).join("");
+    if (page.first) {
       return `
         <header class="nda-document-head">
           <h2>NON-DISCLOSURE & PAYMENT TERMS AGREEMENT</h2>
@@ -665,41 +772,15 @@ function buildNdaPages(data) {
         ${renderNdaSectionForPreview(0)}
         <div class="nda-project-line"><strong>Project / Service:</strong> ${escapeHtml(data.projectService || "-")}</div>
         ${renderNdaSectionForPreview(1)}
-      `;
-    }
-    if (sectionIndexes.includes(9)) {
-      return `
-        <h3 class="nda-part-title">PART B - PAYMENT TERMS AGREEMENT</h3>
-        <table class="nda-fee-table">
-          <tr><th>Fee Type</th><th>Rate / Amount</th><th>Notes</th></tr>
-          <tr><td>Fixed Project Fee</td><td>${escapeHtml(data.fixedFee || "-")}</td><td>Defined scope per SOW</td></tr>
-          <tr><td>Hourly Rate</td><td>${escapeHtml(data.hourlyRate || "-")}</td><td>Billed with time logs</td></tr>
-          <tr><td>Retainer</td><td>${escapeHtml(data.retainer || "-")}</td><td>Reserved capacity</td></tr>
-        </table>
-        <div class="nda-project-line"><strong>Payment Notes:</strong> ${escapeHtml(data.paymentNotes || "-")}</div>
         ${sectionsHtml}
+        ${page.signature ? renderNdaSignatureBlock(data) : ""}
       `;
     }
-    if (pageIndex === ndaSectionGroups.length - 1) {
-      return `
-        ${sectionsHtml}
-        <div class="nda-signature-grid">
-          <div>
-            <p class="signature-text">${escapeHtml(data.providerSignature || data.providerSignatory || "Cyphrix Technologies")}</p>
-            <strong>${escapeHtml(data.providerSignatory || "Cyphrix Technologies")}</strong>
-            <span>Service Provider</span>
-            <span>Date: ${escapeHtml(formatDate(data.effectiveDate))}</span>
-          </div>
-          <div>
-            <p class="signature-text">${escapeHtml(data.clientSignature || data.clientSignatory || "Client Signature")}</p>
-            <strong>${escapeHtml(data.clientSignatory || data.clientName || "Client")}</strong>
-            <span>Receiving Party</span>
-            <span>Date: ${escapeHtml(formatDate(data.effectiveDate))}</span>
-          </div>
-        </div>
-      `;
-    }
-    return sectionsHtml;
+    return `
+      ${page.paymentIntro ? renderNdaPaymentIntro(data) : ""}
+      ${sectionsHtml}
+      ${page.signature ? renderNdaSignatureBlock(data) : ""}
+    `;
   });
 }
 
@@ -708,9 +789,47 @@ function renderNdaSectionForPreview(index) {
   return `
     <section class="nda-generated-section">
       <h4><span>${index + 1}</span>${escapeHtml(section.title)}</h4>
-      <p>${escapeHtml(section.body)}</p>
+      ${renderRichNdaText(section.body)}
+      ${section.noteEnabled && section.note ? `<div class="nda-yellow-note">${renderRichNdaText(section.note)}</div>` : ""}
     </section>
   `;
+}
+
+function parseNdaLines(value) {
+  return String(value || "")
+    .split("\n")
+    .map((line) => {
+      const trimmed = line.trim();
+      const bullet = /^[-*•]\s+(.+)/.exec(trimmed);
+      return { type: bullet ? "bullet" : trimmed ? "text" : "space", text: bullet ? bullet[1] : trimmed };
+    });
+}
+
+function renderRichNdaText(value) {
+  const lines = parseNdaLines(value);
+  let html = "";
+  let bulletItems = [];
+
+  function flushBullets() {
+    if (!bulletItems.length) return;
+    html += `<ul>${bulletItems.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`;
+    bulletItems = [];
+  }
+
+  lines.forEach((line) => {
+    if (line.type === "bullet") {
+      bulletItems.push(line.text);
+      return;
+    }
+    flushBullets();
+    if (line.type === "space") {
+      html += `<div class="nda-line-space"></div>`;
+    } else {
+      html += `<p>${escapeHtml(line.text)}</p>`;
+    }
+  });
+  flushBullets();
+  return html;
 }
 
 function saveState() {
@@ -719,14 +838,14 @@ function saveState() {
 }
 
 function saveNdaState() {
-  localStorage.setItem(NDA_STORAGE_KEY, JSON.stringify({ data: getNdaData(), sections: ndaSections }));
+  localStorage.setItem(NDA_STORAGE_KEY, JSON.stringify({ data: getNdaData(), sections: ndaSections, contentVersion: NDA_CONTENT_VERSION }));
 }
 
 function loadNdaState() {
   try {
     const parsed = JSON.parse(localStorage.getItem(NDA_STORAGE_KEY) || "{}");
     setNdaForm(parsed.data || ndaDefaults);
-    ndaSections = migrateNdaSections(parsed.sections);
+    ndaSections = parsed.contentVersion === NDA_CONTENT_VERSION ? migrateNdaSections(parsed.sections) : structuredClone(ndaSectionDefaults);
   } catch {
     setNdaForm(ndaDefaults);
     ndaSections = structuredClone(ndaSectionDefaults);
@@ -1207,7 +1326,8 @@ async function createNdaPdf() {
   const offsets = [0];
   let byteLength = 0;
 
-  const pageCount = ndaSectionGroups.length;
+  const ndaPageModels = buildNdaPageModels(data);
+  const pageCount = ndaPageModels.length;
   const imageBytes = [];
   for (let i = 0; i < pageCount; i += 1) {
     imageBytes.push(new Uint8Array(await (await fetch("assets/cyphrix-template.jpg")).arrayBuffer()));
@@ -1240,6 +1360,13 @@ async function createNdaPdf() {
       .join("\n");
   }
 
+  function estimatePdfTextHeight(value, maxChars = 82, size = 8.1) {
+    return parseNdaLines(value).reduce((height, entry) => {
+      if (entry.type === "space") return height + size * 0.7;
+      return height + Math.max(1, wrapText(entry.text, entry.type === "bullet" ? maxChars - 4 : maxChars).length) * (size + 3.2);
+    }, 0);
+  }
+
   function fillRect(x, y, w, h, color = "1 1 1") {
     return `${color} rg ${x} ${y} ${w} ${h} re f`;
   }
@@ -1248,13 +1375,23 @@ async function createNdaPdf() {
   }
 
   function buildNdaPdfContent(pageIndex) {
+    const pageModel = ndaPageModels[pageIndex];
     const content = [`q ${pageWidth} 0 0 ${pageHeight} 0 0 cm /Im${pageIndex} Do Q`];
     let y = 645;
 
     function addText(value, x, size = 8.2, bold = false, maxChars = 82) {
-      wrapText(value, maxChars).forEach((line) => {
-        content.push(pdfText(line, x, y, size, bold));
-        y -= size + 3.2;
+      parseNdaLines(value).forEach((entry) => {
+        if (entry.type === "space") {
+          y -= size * 0.7;
+          return;
+        }
+        const isBullet = entry.type === "bullet";
+        wrapText(entry.text, isBullet ? maxChars - 4 : maxChars).forEach((line, lineIndex) => {
+          const lineX = x + (isBullet ? 12 : 0) + (lineIndex ? 8 : 0);
+          if (isBullet && lineIndex === 0) content.push(pdfText("-", x + 3, y, size, bold));
+          content.push(pdfText(line, lineX, y, size, bold));
+          y -= size + 3.2;
+        });
       });
     }
 
@@ -1268,9 +1405,19 @@ async function createNdaPdf() {
       content.push(pdfText(section.title.toUpperCase(), 116, y, 8.1, true));
       y -= 18;
       addText(section.body, 82, 8.1, false, 82);
+      if (section.noteEnabled && section.note) {
+        y -= 4;
+        const noteHeight = Math.max(20, estimatePdfTextHeight(section.note, 80, 7.6) + 11);
+        content.push(fillRect(82, y - noteHeight + 5, 448, noteHeight, "1 0.96 0.78"));
+        content.push(fillRect(82, y - noteHeight + 5, 4, noteHeight, "0.95 0.68 0.08"));
+        const originalY = y;
+        y -= 8;
+        addText(section.note, 92, 7.6, false, 80);
+        y = Math.min(y, originalY - noteHeight - 2);
+      }
     }
 
-    if (pageIndex === 0) {
+    if (pageModel.first) {
       content.push("0.03 0.66 0.86 rg");
       content.push(pdfText("NON-DISCLOSURE & PAYMENT TERMS AGREEMENT", 155, y, 12.5, true).replace("0.07 0.09 0.13 rg", "0.02 0.63 0.84 rg"));
       y -= 11;
@@ -1301,7 +1448,7 @@ async function createNdaPdf() {
       y -= 18;
     }
 
-    if (ndaSectionGroups[pageIndex].includes(9)) {
+    if (pageModel.paymentIntro) {
       content.push(pdfText("PART B - PAYMENT TERMS AGREEMENT", 82, y, 8.2, true));
       y -= 18;
       content.push(pdfText("Fee Type", 88, y, 7.5, true));
@@ -1322,21 +1469,21 @@ async function createNdaPdf() {
       addText(`Payment Notes: ${data.paymentNotes || "-"}`, 82, 8.1, false, 86);
     }
 
-    if (pageIndex === 0) {
+    if (pageModel.first) {
       addSection(0);
       y -= 4;
       addText(`Project / Service: ${data.projectService || "-"}`, 82, 8.1, true, 86);
       addSection(1);
-    } else {
-      ndaSectionGroups[pageIndex].forEach(addSection);
     }
+    pageModel.sectionIndexes.forEach(addSection);
 
-    if (pageIndex === ndaSectionGroups.length - 1) {
+    if (pageModel.signature) {
       y = Math.min(y - 24, 330);
       content.push("0.45 0.50 0.58 RG 0.8 w 82 318 m 265 318 l S");
       content.push("0.45 0.50 0.58 RG 0.8 w 330 318 m 512 318 l S");
       content.push(pdfText(data.providerSignature || data.providerSignatory || "Cyphrix Technologies", 92, 340, 13, true));
-      content.push(pdfText(data.clientSignature || data.clientSignatory || "Client Signature", 340, 340, 13, true));
+      content.push(strokeRect(340, 330, 150, 34, "0.45 0.50 0.58", 0.9));
+      content.push(pdfText("Client Signature", 383, 316, 6.8));
       content.push(pdfText(data.providerSignatory || "Cyphrix Technologies", 92, 300, 7.5, true));
       content.push(pdfText("Service Provider", 92, 289, 7));
       content.push(pdfText(`Date: ${formatDate(data.effectiveDate)}`, 92, 278, 7));
@@ -1496,7 +1643,7 @@ ndaSectionsEditor?.addEventListener("input", (event) => {
   const index = Number(target.dataset.ndaSection);
   const field = target.dataset.field;
   if (!Number.isNaN(index) && field) {
-    ndaSections[index][field] = target.value;
+    ndaSections[index][field] = field === "noteEnabled" ? target.checked : target.value;
     revertedNdaSections.delete(index);
     target.closest(".nda-section-card")?.classList.remove("reverted");
     renderPreview();
